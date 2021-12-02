@@ -3,7 +3,7 @@ local M = {
     debug = false, -- print debug logs
     log_level = "info", -- log level for igs
     run_copen = true, -- run copen after qf commands
-    default_mappings = true, -- set default mappings
+    default_mappings = false, -- set default mappings
   },
 }
 
@@ -80,10 +80,14 @@ M.qf_add = function(type)
   end
 
   logger.debug("qflist_what: ", vim.inspect(qflist_what))
-  if not vim.tbl_isempty(qflist_what) then
+
+  if vim.tbl_isempty(qflist_what) then
     logger.info "No changed files to parse"
-    vim.fn.setqflist(qflist_what)
+    return
   end
+
+  vim.fn.setqflist(qflist_what)
+
   if M.conf.run_copen then
     vim.cmd [[copen]]
   end

@@ -9,7 +9,8 @@ A minimalist Neovim plugin that enhances the usage of git status inside Neovim.
 
 ### 🚀 Showcase
 
-<img src="https://github.com/rmagatti/readme-assets/blob/main/goto-preview-zoomed.gif" />
+Send all changes to the Quickfix list
+<img src="https://github.com/rmagatti/readme-assets/blob/main/interactive-git-status.gif" />
 
 ### 📦 Installation
 
