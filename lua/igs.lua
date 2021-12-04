@@ -46,7 +46,8 @@ local parse_changes = function()
 end
 
 -- TODO: use this
-M.get_processed_changes = function()
+---@diagnostic disable-next-line: unused-local, unused-function
+local get_processed_changes = function()
   local changes = parse_changes()
   local processed_changes = {}
 
@@ -60,6 +61,23 @@ M.get_processed_changes = function()
   return processed_changes
 end
 
+local get_changed_lines = function(file_path)
+  local diff_line = vim.fn.system("git diff -U0 " .. file_path .. " | grep '^@@'")
+  local changed_lines = {}
+
+  local chunks = vim.split(vim.trim(diff_line), " ")
+  for _, chunk in ipairs(chunks) do
+    local first_letter = chunk:sub(1, 1)
+
+    if first_letter == "+" then
+      local line_nr = vim.split(chunk, ",")[1]:gsub("+", "")
+      table.insert(changed_lines, tonumber(line_nr))
+    end
+  end
+
+  return changed_lines
+end
+
 M.qf_add = function(type)
   local changes = parse_changes()
   local qflist_what = {}
@@ -67,15 +85,16 @@ M.qf_add = function(type)
   for _, change in ipairs(changes) do
     local change_type = vim.trim(change:sub(1, 1))
     local file_path = vim.trim(change:sub(3))
+    local changed_lines = get_changed_lines(file_path)
 
     logger.debug(change_type, file_path)
 
     if type == "all" then
       local bufnr = vim.fn.bufadd(file_path)
-      table.insert(qflist_what, { bufnr = bufnr, lnum = 0, col = 0 })
+      table.insert(qflist_what, { bufnr = bufnr, lnum = changed_lines[1], col = 0 })
     elseif change_type == type then
       local bufnr = vim.fn.bufadd(file_path)
-      table.insert(qflist_what, { bufnr = bufnr, lnum = 0, col = 0 })
+      table.insert(qflist_what, { bufnr = bufnr, lnum = changed_lines[1], col = 0 })
     end
   end
 
