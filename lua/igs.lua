@@ -13,12 +13,16 @@ M.setup = function(config)
   if M.conf.default_mappings then
     vim.cmd [[
     nnoremap <leader>gem <cmd>lua require('igs').edit_modified()<CR>
-    nnoremap <leader>ges <cmd>lua require('igs').edit_staged()<CR>
+    nnoremap <leader>ges <cmd>lua require('igs').edit_added()<CR>
     nnoremap <leader>gea <cmd>lua require('igs').edit_all()<CR>
 
     nnoremap <leader>gqm <cmd>lua require('igs').qf_modified()<CR>
-    nnoremap <leader>gqs <cmd>lua require('igs').qf_staged()<CR>
+    nnoremap <leader>gqs <cmd>lua require('igs').qf_added()<CR>
     nnoremap <leader>gqa <cmd>lua require('igs').qf_all()<CR>
+
+    nnoremap <leader>iqm <cmd>lua require('igs').qf_modified({all_changes=true})<CR>
+    nnoremap <leader>iqs <cmd>lua require('igs').qf_added({all_changes=true})<CR>
+    nnoremap <leader>iqa <cmd>lua require('igs').qf_all({all_changes=true})<CR>
   ]]
   end
 end
@@ -78,7 +82,16 @@ local get_changed_lines = function(file_path)
   return changed_lines
 end
 
-M.qf_add = function(type)
+M.qf_add = function(options)
+  local type = options.type
+  local all_changes = (function()
+    if options.all_changes ~= nil then
+      return options.all_changes
+    else
+      return false
+    end
+  end)()
+
   local changes = parse_changes()
   local qflist_what = {}
 
@@ -91,7 +104,14 @@ M.qf_add = function(type)
 
     if type == "all" then
       local bufnr = vim.fn.bufadd(file_path)
-      table.insert(qflist_what, { bufnr = bufnr, lnum = changed_lines[1], col = 0 })
+
+      if all_changes then
+        for _, line in ipairs(changed_lines) do
+          table.insert(qflist_what, { bufnr = bufnr, lnum = line })
+        end
+      else
+        table.insert(qflist_what, { bufnr = bufnr, lnum = changed_lines[1], col = 0 })
+      end
     elseif change_type == type then
       local bufnr = vim.fn.bufadd(file_path)
       table.insert(qflist_what, { bufnr = bufnr, lnum = changed_lines[1], col = 0 })
@@ -100,8 +120,22 @@ M.qf_add = function(type)
 
   logger.debug("qflist_what: ", vim.inspect(qflist_what))
 
+  -- ref: https://git-scm.com/docs/git-status#_short_format
+  local change_type_verbose = {
+    ["??"] = "untracked",
+    ["!!"] = "ignored",
+    [" "] = "unmodified",
+    ["M"] = "modified",
+    ["A"] = "added",
+    ["T"] = "file type changed",
+    ["D"] = "deleted",
+    ["R"] = "renamed",
+    ["C"] = "copied",
+    ["U"] = "updated but unmerged"
+  }
+
   if vim.tbl_isempty(qflist_what) then
-    logger.info "No changed files to parse"
+    logger.info("No " .. (change_type_verbose[type] or "any") .. " files to parse")
     return
   end
 
@@ -128,30 +162,52 @@ M.edit = function(type)
   end
 end
 
+local function process_options(options)
+  if vim.tbl_isempty(options) then
+    return { all_changes = false }
+  end
+
+  local all_changes = (function()
+    if options.all_changes ~= nil then
+      return options.all_changes
+    else
+      return false
+    end
+  end)()
+
+  return { all_changes = all_changes }
+end
+
 M.edit_modified = function()
   M.edit "M"
 end
-M.edit_staged = function()
+
+M.edit_added = function()
   M.edit "A"
 end
+
 M.edit_unstaged = function()
   M.edit "??"
 end
+
 M.edit_all = function()
   M.edit "all"
 end
 
-M.qf_modified = function()
-  M.qf_add "M"
+M.qf_modified = function(options)
+  M.qf_add { type = "M", all_changes = process_options(options).all_changes }
 end
-M.qf_staged = function()
-  M.qf_add "A"
+
+M.qf_added = function(options)
+  M.qf_add { type = "A", all_changes = process_options(options).all_changes }
 end
-M.qf_unstaged = function()
-  M.qf_add "??"
+
+M.qf_unstaged = function(options)
+  M.qf_add { type = "??", all_changes = process_options(options).all_changes }
 end
-M.qf_all = function()
-  M.qf_add "all"
+
+M.qf_all = function(options)
+  M.qf_add { type = "all", all_changes = process_options(options).all_changes }
 end
 
 return M

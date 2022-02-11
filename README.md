@@ -52,7 +52,14 @@ nnoremap <leader>gea <cmd>lua require('igs').edit_all()<CR>
 nnoremap <leader>gqm <cmd>lua require('igs').qf_modified()<CR>
 nnoremap <leader>gqs <cmd>lua require('igs').qf_staged()<CR>
 nnoremap <leader>gqa <cmd>lua require('igs').qf_all()<CR>
+
+nnoremap <leader>iqm <cmd>lua require('igs').qf_modified({all_changes=true})<CR>
+nnoremap <leader>iqs <cmd>lua require('igs').qf_added({all_changes=true})<CR>
+nnoremap <leader>iqa <cmd>lua require('igs').qf_all({all_changes=true})<CR>
+
 ```
+**Note:** the { all_changes=true } option makes it so each of the changes is individually listed in the quickfix list instead of just the first one per file. 
+
 
 ### Compatibility
 
