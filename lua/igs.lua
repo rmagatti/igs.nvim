@@ -163,7 +163,7 @@ M.edit = function(type)
 end
 
 local function process_options(options)
-  if vim.tbl_isempty(options) then
+  if not options or vim.tbl_isempty(options) then
     return { all_changes = false }
   end
 
