@@ -23,6 +23,9 @@ M.setup = function(config)
     nnoremap <leader>iqm <cmd>lua require('igs').qf_modified({all_changes=true})<CR>
     nnoremap <leader>iqs <cmd>lua require('igs').qf_added({all_changes=true})<CR>
     nnoremap <leader>iqa <cmd>lua require('igs').qf_all({all_changes=true})<CR>
+    nnoremap <leader>iqq <cmd>lua require('igs').qf_diff_branch({all_changes=true})<CR>
+
+    nnoremap <localleader>db <cmd>lua require('igs').qf_diff_branch({all_changes=true})<CR>
   ]]
   end
 end
@@ -40,7 +43,22 @@ local logger = {
   end,
 }
 
-local parse_changes = function()
+local open_qflist = function(qflist_what)
+  logger.debug("qflist_what: ", vim.inspect(qflist_what))
+
+  if vim.tbl_isempty(qflist_what) then
+    logger.info "No files to add to the quickfix list"
+    return
+  end
+
+  vim.fn.setqflist(qflist_what)
+
+  if M.conf.run_copen then
+    vim.cmd [[copen]]
+  end
+end
+
+local parse_status_changes = function()
   local status = vim.fn.system "git status --porcelain"
   logger.debug("status: ", vim.inspect(status))
 
@@ -52,7 +70,7 @@ end
 -- TODO: use this
 ---@diagnostic disable-next-line: unused-local, unused-function
 local get_processed_changes = function()
-  local changes = parse_changes()
+  local changes = parse_status_changes()
   local processed_changes = {}
 
   for _, change in ipairs(changes) do
@@ -65,8 +83,8 @@ local get_processed_changes = function()
   return processed_changes
 end
 
-local get_changed_lines = function(file_path)
-  local diff_line = vim.fn.system("git diff -U0 " .. file_path .. " | grep '^@@'")
+local get_changes = function(diff_target)
+  local diff_line = vim.fn.system("git diff -U0 " .. diff_target .. " | grep '^@@'")
   local changed_lines = {}
 
   local chunks = vim.split(vim.trim(diff_line), " ")
@@ -82,23 +100,54 @@ local get_changed_lines = function(file_path)
   return changed_lines
 end
 
-M.qf_add = function(options)
-  local type = options.type
-  local all_changes = (function()
-    if options.all_changes ~= nil then
-      return options.all_changes
-    else
-      return false
-    end
-  end)()
+local get_changed_files = function(diff_target)
+  local diff = vim.fn.system("git diff -U0 --name-only " .. diff_target)
 
-  local changes = parse_changes()
+  local filepaths = vim.split(vim.trim(diff), "\n")
+
+  return filepaths
+end
+
+local parse_boolean_option = function(options, option_name)
+  if options[option_name] ~= nil then
+    return options[option_name]
+  else
+    return false
+  end
+end
+
+M.qf_add_branch_diff = function(options)
+  local all_changes = parse_boolean_option(options, "all_changes")
+  local branch_name = options.branch_name or error "branch_name is required"
+  local qflist_what = {}
+
+  local changed_files = get_changed_files(branch_name)
+
+  for _, file in ipairs(changed_files) do
+    local changed_lines = get_changes(file)
+    local bufnr = vim.fn.bufadd(file)
+
+    if all_changes then
+      for _, line in ipairs(changed_lines) do
+        table.insert(qflist_what, { bufnr = bufnr, lnum = line })
+      end
+    else
+      table.insert(qflist_what, { bufnr = bufnr, lnum = changed_lines[1], col = 0 })
+    end
+  end
+
+  open_qflist(qflist_what)
+end
+
+M.qf_add = function(options)
+  local changes = parse_status_changes()
+  local all_changes = parse_boolean_option(options, "all_changes")
   local qflist_what = {}
 
   for _, change in ipairs(changes) do
     local change_type = vim.trim(change:sub(1, 1))
     local file_path = vim.trim(change:sub(3))
-    local changed_lines = get_changed_lines(file_path)
+    local changed_lines = get_changes(file_path)
 
     logger.debug(change_type, file_path)
 
@@ -118,36 +167,25 @@ M.qf_add = function(options)
     end
   end
 
-  logger.debug("qflist_what: ", vim.inspect(qflist_what))
+  -- -- ref: https://git-scm.com/docs/git-status#_short_format
+  -- local change_type_verbose = {
+  --   ["??"] = "untracked",
+  --   ["!!"] = "ignored",
+  --   [" "] = "unmodified",
+  --   ["M"] = "modified",
+  --   ["A"] = "added",
+  --   ["T"] = "file type changed",
+  --   ["D"] = "deleted",
+  --   ["R"] = "renamed",
+  --   ["C"] = "copied",
+  --   ["U"] = "updated but unmerged",
+  -- }
 
-  -- ref: https://git-scm.com/docs/git-status#_short_format
-  local change_type_verbose = {
-    ["??"] = "untracked",
-    ["!!"] = "ignored",
-    [" "] = "unmodified",
-    ["M"] = "modified",
-    ["A"] = "added",
-    ["T"] = "file type changed",
-    ["D"] = "deleted",
-    ["R"] = "renamed",
-    ["C"] = "copied",
-    ["U"] = "updated but unmerged"
-  }
-
-  if vim.tbl_isempty(qflist_what) then
-    logger.info("No " .. (change_type_verbose[type] or "any") .. " files to parse")
-    return
-  end
-
-  vim.fn.setqflist(qflist_what)
-
-  if M.conf.run_copen then
-    vim.cmd [[copen]]
-  end
+  open_qflist(qflist_what)
 end
 
 M.edit = function(type)
-  local changes = parse_changes()
+  local changes = parse_status_changes()
 
   for _, change in ipairs(changes) do
     local change_type = vim.trim(change:sub(1, 1))
@@ -167,13 +205,7 @@ local function process_options(options)
     return { all_changes = false }
   end
 
-  local all_changes = (function()
-    if options.all_changes ~= nil then
-      return options.all_changes
-    else
-      return false
-    end
-  end)()
+  local all_changes = parse_boolean_option(options, "all_changes")
 
   return { all_changes = all_changes }
 end
@@ -208,6 +240,12 @@ end
 
 M.qf_all = function(options)
   M.qf_add { type = "all", all_changes = process_options(options).all_changes }
+end
+
+M.qf_diff_branch = function(options)
+  vim.ui.input({ prompt = "Target diff with: " }, function(branch_name)
+    M.qf_add_branch_diff { all_changes = process_options(options).all_changes, branch_name = branch_name }
+  end)
 end
 
 return M
