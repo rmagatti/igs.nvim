@@ -123,9 +123,13 @@ M.qf_add_branch_diff = function(options)
 
   local changed_files = get_changed_files(branch_name)
 
+  logger.debug("changed_files: ", vim.inspect(changed_files))
+
   for _, file in ipairs(changed_files) do
     local changed_lines = get_changes(file)
     local bufnr = vim.fn.bufadd(file)
+
+    logger.debug('changed_lines: ', vim.inspect(changed_lines))
 
     if all_changes then
       for _, line in ipairs(changed_lines) do
