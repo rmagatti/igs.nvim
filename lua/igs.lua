@@ -24,6 +24,7 @@ M.setup = function(config)
     nnoremap <leader>iqs <cmd>lua require('igs').qf_added({all_changes=true})<CR>
     nnoremap <leader>iqa <cmd>lua require('igs').qf_all({all_changes=true})<CR>
     nnoremap <leader>iqq <cmd>lua require('igs').qf_diff_branch({all_changes=true})<CR>
+
     nnoremap <localleader>db <cmd>lua require('igs').qf_diff_branch({all_changes=true})<CR>
   ]]
   end
