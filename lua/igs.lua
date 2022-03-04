@@ -105,6 +105,8 @@ local get_changed_files = function(diff_target)
 
   local filepaths = vim.split(vim.trim(diff), "\n")
 
+  logger.debug("filepaths: ", vim.inspect(filepaths))
+
   return filepaths
 end
 
