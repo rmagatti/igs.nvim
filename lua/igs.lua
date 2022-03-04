@@ -83,9 +83,13 @@ local get_processed_changes = function()
   return processed_changes
 end
 
-local get_changes = function(diff_target)
+local get_changes = function(diff_target, options)
   local diff_line = vim.fn.system("git diff -U0 " .. diff_target .. " | grep '^@@'")
   local changed_lines = {}
+
+  if options.target_branch then
+    diff_line = vim.fn.system("git diff -U0 .." .. options.target_branch .. " " .. diff_target .. " | grep '^@@'")
+  end
 
   local chunks = vim.split(vim.trim(diff_line), " ")
   for _, chunk in ipairs(chunks) do
@@ -128,10 +132,10 @@ M.qf_add_branch_diff = function(options)
   logger.debug("changed_files: ", vim.inspect(changed_files))
 
   for _, file in ipairs(changed_files) do
-    local changed_lines = get_changes(file)
+    local changed_lines = get_changes(file, { target_branch = branch_name })
     local bufnr = vim.fn.bufadd(file)
 
-    logger.debug('changed_lines: ', vim.inspect(changed_lines))
+    logger.debug("changed_lines: ", vim.inspect(changed_lines))
 
     if all_changes then
       for _, line in ipairs(changed_lines) do
