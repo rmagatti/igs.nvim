@@ -4,9 +4,28 @@ A minimalist Neovim plugin that enhances the usage of git status inside Neovim.
 
 ## ⭐ Features
 
-- Edit changed, staged, unstaged or all files
-- Send changed, staged, unstaged or all files to the Quickfix List
+### Edit files
 
+Edit modified, added, unstaged or all files
+- edit_modified()
+- edit_added()
+- edit_unstaged()
+- edit_all()
+
+### Send files to the Quickfix list
+
+Send modified, added, unstaged or all files to the Quickfix List
+- qf_modified()
+- qf_added()
+- qf_unstaged()
+- qf_all()
+
+### Diff support
+
+Send the diff between a particular target (branch, file) to the Quickfix list
+- qf_diff_branch()
+this function is slightly different than the others as it asks for an input for a target to diff with.
+      
 ### 🚀 Showcase
 
 Send all changes to the Quickfix list
@@ -56,6 +75,9 @@ nnoremap <leader>gqa <cmd>lua require('igs').qf_all()<CR>
 nnoremap <leader>iqm <cmd>lua require('igs').qf_modified({all_changes=true})<CR>
 nnoremap <leader>iqs <cmd>lua require('igs').qf_added({all_changes=true})<CR>
 nnoremap <leader>iqa <cmd>lua require('igs').qf_all({all_changes=true})<CR>
+nnoremap <leader>iqq <cmd>lua require('igs').qf_diff_branch({all_changes=true})<CR>
+
+nnoremap <localleader>db <cmd>lua require('igs').qf_diff_branch({all_changes=true})<CR>
 
 ```
 **Note:** the { all_changes=true } option makes it so each of the changes is individually listed in the quickfix list instead of just the first one per file. 
