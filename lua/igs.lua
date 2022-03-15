@@ -26,6 +26,7 @@ M.setup = function(config)
     nnoremap <leader>iqq <cmd>lua require('igs').qf_diff_branch({all_changes=true})<CR>
 
     nnoremap <localleader>db <cmd>lua require('igs').qf_diff_branch({all_changes=true})<CR>
+    nnoremap <localleader>dd <cmd>lua require('igs').qf_diff_branch({all_changes=false})<CR>
   ]]
   end
 end
@@ -87,7 +88,7 @@ local get_changes = function(diff_target, options)
   local diff_line = vim.fn.system("git diff -U0 " .. diff_target .. " | grep '^@@'")
   local changed_lines = {}
 
-  if options.target_branch then
+  if options and options.target_branch then
     diff_line = vim.fn.system("git diff -U0 .." .. options.target_branch .. " " .. diff_target .. " | grep '^@@'")
   end
 
