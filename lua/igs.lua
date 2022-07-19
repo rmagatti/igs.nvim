@@ -89,7 +89,10 @@ local get_changes = function(diff_target, options)
   local changed_lines = {}
 
   if options and options.target_branch then
-    diff_line = vim.fn.system("git diff -U0 .." .. options.target_branch .. " " .. diff_target .. " | grep '^@@'")
+    local diff_cmd = "git diff -U0 .." .. options.target_branch .. " " .. diff_target .. " | grep '^@@'"
+    diff_line = vim.fn.system(diff_cmd)
+
+    logger.debug("diff_line: ", diff_line)
   end
 
   local chunks = vim.split(vim.trim(diff_line), " ")
@@ -116,7 +119,7 @@ local get_changed_files = function(diff_target)
 end
 
 local parse_boolean_option = function(options, option_name)
-  if options[option_name] ~= nil then
+  if options and options[option_name] ~= nil then
     return options[option_name]
   else
     return false
@@ -153,6 +156,7 @@ end
 M.qf_add = function(options)
   local changes = parse_status_changes()
   local all_changes = parse_boolean_option(options, "all_changes")
+  local type = options.type
   local qflist_what = {}
 
   for _, change in ipairs(changes) do
@@ -164,8 +168,11 @@ M.qf_add = function(options)
 
     if type == "all" then
       local bufnr = vim.fn.bufadd(file_path)
+      logger.debug("type: ", type)
 
       if all_changes then
+        logger.debug("all_changes: ", all_changes)
+
         for _, line in ipairs(changed_lines) do
           table.insert(qflist_what, { bufnr = bufnr, lnum = line })
         end
