@@ -25,6 +25,11 @@ Send modified, added, unstaged or all files to the Quickfix List
 Send the diff between a particular target (branch, file) to the Quickfix list
 - qf_diff_branch()
 this function is slightly different than the others as it asks for an input for a target to diff with.
+
+### Conflicts support
+
+Send the conflicting files in the merge to the Quickfix list
+- qf_conflicts()
       
 ### 🚀 Showcase
 
@@ -63,22 +68,24 @@ There are no mappings by default, you can set `default_mappings = true` in the c
 
 **Default**
 
-```viml
-nnoremap <leader>gem <cmd>lua require('igs').edit_modified()<CR>
-nnoremap <leader>ges <cmd>lua require('igs').edit_staged()<CR>
-nnoremap <leader>gea <cmd>lua require('igs').edit_all()<CR>
+```lua
+vim.keymap.set("n", "<leader>gem", function() require('igs').edit_modified() end, { noremap = true })
+vim.keymap.set("n", "<leader>ges", function() require('igs').edit_added() end, { noremap = true })
+vim.keymap.set("n", "<leader>gea", function() require('igs').edit_all() end, { noremap = true })
 
-nnoremap <leader>gqm <cmd>lua require('igs').qf_modified()<CR>
-nnoremap <leader>gqs <cmd>lua require('igs').qf_staged()<CR>
-nnoremap <leader>gqa <cmd>lua require('igs').qf_all()<CR>
+vim.keymap.set("n", "<leader>gqm", function() require('igs').qf_modified() end, { noremap = true })
+vim.keymap.set("n", "<leader>gqs", function() require('igs').qf_added() end, { noremap = true })
+vim.keymap.set("n", "<leader>gqa", function() require('igs').qf_all() end, { noremap = true })
 
-nnoremap <leader>iqm <cmd>lua require('igs').qf_modified({all_changes=true})<CR>
-nnoremap <leader>iqs <cmd>lua require('igs').qf_added({all_changes=true})<CR>
-nnoremap <leader>iqa <cmd>lua require('igs').qf_all({all_changes=true})<CR>
-nnoremap <leader>iqq <cmd>lua require('igs').qf_diff_branch({all_changes=true})<CR>
+vim.keymap.set("n", "<leader>iqm", function() require('igs').qf_modified({ all_changes = true }) end, { noremap = true })
+vim.keymap.set("n", "<leader>iqs", function() require('igs').qf_added({ all_changes = true }) end, { noremap = true })
+vim.keymap.set("n", "<leader>iqa", function() require('igs').qf_all({ all_changes = true }) end, { noremap = true })
+vim.keymap.set("n", "<leader>iqq", function() require('igs').qf_diff_branch({ all_changes = true }) end, { noremap = true })
 
-nnoremap <localleader>db <cmd>lua require('igs').qf_diff_branch({all_changes=true})<CR>
+vim.keymap.set("n", "<localleader>db", function() require('igs').qf_diff_branch({ all_changes = true }) end, { noremap = true })
+vim.keymap.set("n", "<localleader>dd", function() require('igs').qf_diff_branch({ all_changes = false }) end, { noremap = true })
 
+vim.keymap.set("n", "<leader>oc", function() require('igs').qf_conflicts() end, { noremap = true })
 ```
 **Note:** the { all_changes=true } option makes it so each of the changes is individually listed in the quickfix list instead of just the first one per file. 
 
@@ -86,7 +93,7 @@ nnoremap <localleader>db <cmd>lua require('igs').qf_diff_branch({all_changes=tru
 ### Compatibility
 
 ```
-NVIM v0.5.0-dev+7d4f890aa
+NVIM v0.8.1
 Build type: Release
 LuaJIT 2.1.0-beta3
 ```

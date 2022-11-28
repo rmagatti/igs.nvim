@@ -35,7 +35,7 @@ M.setup = function(config)
     vim.keymap.set("n", "<localleader>dd", function() require('igs').qf_diff_branch({ all_changes = false }) end,
       { noremap = true })
 
-    vim.keymap.set("n", "<leader>oc", function() require('igs').qf_conflicts({ all_changes = true }) end,
+    vim.keymap.set("n", "<leader>oc", function() require('igs').qf_conflicts() end,
       { noremap = true })
     -- stylua: ignore end
   end
