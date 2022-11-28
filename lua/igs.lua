@@ -11,23 +11,33 @@ M.setup = function(config)
   M.conf = vim.tbl_deep_extend("force", M.conf, config or {})
 
   if M.conf.default_mappings then
-    vim.cmd [[
-    nnoremap <leader>gem <cmd>lua require('igs').edit_modified()<CR>
-    nnoremap <leader>ges <cmd>lua require('igs').edit_added()<CR>
-    nnoremap <leader>gea <cmd>lua require('igs').edit_all()<CR>
+    -- vim.keymap.set("n", , , {noremap = true})
 
-    nnoremap <leader>gqm <cmd>lua require('igs').qf_modified()<CR>
-    nnoremap <leader>gqs <cmd>lua require('igs').qf_added()<CR>
-    nnoremap <leader>gqa <cmd>lua require('igs').qf_all()<CR>
 
-    nnoremap <leader>iqm <cmd>lua require('igs').qf_modified({all_changes=true})<CR>
-    nnoremap <leader>iqs <cmd>lua require('igs').qf_added({all_changes=true})<CR>
-    nnoremap <leader>iqa <cmd>lua require('igs').qf_all({all_changes=true})<CR>
-    nnoremap <leader>iqq <cmd>lua require('igs').qf_diff_branch({all_changes=true})<CR>
+    -- stylua: ignore start
+    vim.keymap.set("n", "<leader>gem", function() require('igs').edit_modified() end, { noremap = true })
+    vim.keymap.set("n", "<leader>ges", function() require('igs').edit_added() end, { noremap = true })
+    vim.keymap.set("n", "<leader>gea", function() require('igs').edit_all() end, { noremap = true })
 
-    nnoremap <localleader>db <cmd>lua require('igs').qf_diff_branch({all_changes=true})<CR>
-    nnoremap <localleader>dd <cmd>lua require('igs').qf_diff_branch({all_changes=false})<CR>
-  ]]
+    vim.keymap.set("n", "<leader>gqm", function() require('igs').qf_modified() end, { noremap = true })
+    vim.keymap.set("n", "<leader>gqs", function() require('igs').qf_added() end, { noremap = true })
+    vim.keymap.set("n", "<leader>gqa", function() require('igs').qf_all() end, { noremap = true })
+
+    vim.keymap.set("n", "<leader>iqm", function() require('igs').qf_modified({ all_changes = true }) end,
+      { noremap = true })
+    vim.keymap.set("n", "<leader>iqs", function() require('igs').qf_added({ all_changes = true }) end, { noremap = true })
+    vim.keymap.set("n", "<leader>iqa", function() require('igs').qf_all({ all_changes = true }) end, { noremap = true })
+    vim.keymap.set("n", "<leader>iqq", function() require('igs').qf_diff_branch({ all_changes = true }) end,
+      { noremap = true })
+
+    vim.keymap.set("n", "<localleader>db", function() require('igs').qf_diff_branch({ all_changes = true }) end,
+      { noremap = true })
+    vim.keymap.set("n", "<localleader>dd", function() require('igs').qf_diff_branch({ all_changes = false }) end,
+      { noremap = true })
+
+    vim.keymap.set("n", "<leader>oc", function() require('igs').qf_conflicts({ all_changes = true }) end,
+      { noremap = true })
+    -- stylua: ignore end
   end
 end
 
@@ -160,7 +170,7 @@ M.qf_add = function(options)
   local qflist_what = {}
 
   for _, change in ipairs(changes) do
-    local change_type = vim.trim(change:sub(1, 1))
+    local change_type = vim.trim(change:sub(1, 2))
     local file_path = vim.trim(change:sub(3))
     local changed_lines = get_changes(file_path)
 
@@ -246,6 +256,10 @@ end
 
 M.qf_modified = function(options)
   M.qf_add { type = "M", all_changes = process_options(options).all_changes }
+end
+
+M.qf_conflicts = function(options)
+  M.qf_add { type = "UU", all_changes = process_options(options).all_changes }
 end
 
 M.qf_added = function(options)
