@@ -1,8 +1,8 @@
 local M = {
   conf = {
-    debug = false, -- print debug logs
-    log_level = "info", -- log level for igs
-    run_copen = true, -- run copen after qf commands
+    debug = false,            -- print debug logs
+    log_level = "info",       -- log level for igs
+    run_copen = true,         -- run copen after qf commands
     default_mappings = false, -- set default mappings
   },
 }
@@ -15,29 +15,24 @@ M.setup = function(config)
 
 
     -- stylua: ignore start
-    vim.keymap.set("n", "<leader>gem", function() require('igs').edit_modified() end, { noremap = true })
-    vim.keymap.set("n", "<leader>ges", function() require('igs').edit_added() end, { noremap = true })
-    vim.keymap.set("n", "<leader>gea", function() require('igs').edit_all() end, { noremap = true })
+    vim.keymap.set("n", "<leader>gem", function() require('igs').edit_modified() end, { noremap = true, desc = "Edit all modified files"})
+    vim.keymap.set("n", "<leader>ges", function() require('igs').edit_added() end, { noremap = true, desc = "Edit all added files" })
+    vim.keymap.set("n", "<leader>gea", function() require('igs').edit_all() end, { noremap = true, desc = "Edit all changes" })
 
-    vim.keymap.set("n", "<leader>gqm", function() require('igs').qf_modified() end, { noremap = true })
-    vim.keymap.set("n", "<leader>gqs", function() require('igs').qf_added() end, { noremap = true })
-    vim.keymap.set("n", "<leader>gqa", function() require('igs').qf_all() end, { noremap = true })
+    vim.keymap.set("n", "<leader>gqm", function() require('igs').qf_modified() end, { noremap = true, desc = "Send all modified files to quickfix"})
+    vim.keymap.set("n", "<leader>gqs", function() require('igs').qf_added() end, { noremap = true, desc = "Send all added files to quickfix"})
+    vim.keymap.set("n", "<leader>gqa", function() require('igs').qf_all() end, { noremap = true, desc = "Send all changes to quickfix" })
 
-    vim.keymap.set("n", "<leader>iqm", function() require('igs').qf_modified({ all_changes = true }) end,
-      { noremap = true })
-    vim.keymap.set("n", "<leader>iqs", function() require('igs').qf_added({ all_changes = true }) end, { noremap = true })
-    vim.keymap.set("n", "<leader>iqa", function() require('igs').qf_all({ all_changes = true }) end, { noremap = true })
-    vim.keymap.set("n", "<leader>iqq", function() require('igs').qf_diff_branch({ all_changes = true }) end,
-      { noremap = true })
+    vim.keymap.set("n", "<leader>iqm", function() require('igs').qf_modified({ all_changes = true }) end, { noremap = true, desc = "Send all modified files to quickfix"})
+    vim.keymap.set("n", "<leader>iqs", function() require('igs').qf_added({ all_changes = true }) end, { noremap = true, desc = "Send all added files to quickfix"})
+    vim.keymap.set("n", "<leader>iqa", function() require('igs').qf_all({ all_changes = true }) end, { noremap = true, desc = "Send each and every change to quickfix" })
+    vim.keymap.set("n", "<leader>iqq", function() require('igs').qf_diff_branch({ all_changes = true }) end, { noremap = true, desc = "Send all branch diff changes to quickfix" })
 
-    vim.keymap.set("n", "<localleader>db", function() require('igs').qf_diff_branch({ all_changes = true }) end,
-      { noremap = true })
-    vim.keymap.set("n", "<localleader>dd", function() require('igs').qf_diff_branch({ all_changes = false }) end,
-      { noremap = true })
+    vim.keymap.set("n", "<leader>iqqq", function() require('igs').qf_diff_branch({ all_changes = false }) end, { noremap = true, desc = "Send only first line of each diff chunk to quickfix" })
 
-    vim.keymap.set("n", "<leader>oc", function() require('igs').qf_conflicts() end,
-      { noremap = true })
-    -- stylua: ignore end
+    vim.keymap.set("n", "<localleader>db", function() require('igs').qf_diff_branch({ all_changes = true }) end, { noremap = true, desc = "Send all branch diff changes to quickfix" })
+    vim.keymap.set("n", "<localleader>dd", function() require('igs').qf_diff_branch({ all_changes = false }) end, { noremap = true, desc = "Send only first line of each diff file to quickfix" })
+    vim.keymap.set("n", "<leader>oc", function() require('igs').qf_conflicts() end, { noremap = true, desc = "Send all conflicts to quickfix" })
   end
 end
 
